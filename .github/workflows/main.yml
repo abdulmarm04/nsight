@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>Reel Insights UI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body {
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      touch-action: manipulation;
+    }
+
+    /* Security Overlay */
+    #security-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #ffffff;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .security-card {
+      width: 100%;
+      max-width: 360px;
+      padding: 28px 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      background: #fff;
+      text-align: center;
+      border: 1px solid #eaeaea;
+    }
+    .security-card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: 8px;
+    }
+    .security-card p {
+      font-size: 14px;
+      color: #737373;
+      margin-bottom: 20px;
+    }
+    .security-card input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid #dbdbdb;
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 2px;
+      outline: none;
+      margin-bottom: 14px;
+    }
+    .security-card input:focus {
+      border-color: #000;
+    }
+    .security-card button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background-color: #000;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .error-msg {
+      color: #e53935;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 412px;
+      background-color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Long Hold Editable Class Visual Feedback */
+    [data-editable="true"] {
+      cursor: pointer;
+      transition: background-color 0.2s ease, outline 0.2s ease;
+      border-radius: 4px;
+    }
+    [data-editable="true"]:active {
+      background-color: rgba(216, 0, 166, 0.15);
+    }
+
+    /* Top Status Bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px 4px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #000;
+    }
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Top Navigation Bar */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .nav-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #000;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    /* Media Thumbnail */
+    .media-section {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0;
+      position: relative;
+    }
+    .thumbnail-wrapper {
+      position: relative;
+      width: 110px;
+      height: 195px;
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #222;
+      cursor: pointer;
+    }
+    .thumbnail-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Engagement Action Icons */
+    .engagement-bar {
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 24px;
+    }
+    .engagement-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: #000;
+    }
+    .engagement-count {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Tabs Bar */
+    .tabs-bar {
+      display: flex;
+      border-bottom: 1px solid #eaeaea;
+      margin-top: 8px;
+    }
+    .tab-item {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #737373;
+      cursor: pointer;
+      position: relative;
+    }
+    .tab-item.active {
+      color: #000;
+    }
+    .tab-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #000;
+    }
+
+    /* Main Content */
+    .content-area {
+      padding: 20px 16px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 17px;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: 16px;
+    }
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Summary Grid */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background-color: #f7f7f9;
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .summary-title {
+      font-size: 13px;
+      color: #737373;
+      font-weight: 500;
+    }
+    .summary-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #000;
+    }
+
+    /* Interactive Graph Component */
+    .graph-container {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      margin-bottom: 24px;
+      touch-action: none;
+    }
+    .graph-y-axis {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #737373;
+    }
+    .graph-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      touch-action: none;
+      cursor: ns-resize;
+    }
+    .graph-x-axis {
+      display: flex;
+      justify-content: space-between;
+      padding-left: 28px;
+      font-size: 12px;
+      color: #737373;
+      margin-top: 4px;
+    }
+    .graph-node-hitbox {
+      fill: transparent;
+      stroke: transparent;
+      stroke-width: 0;
+      cursor: grab;
+    }
+    .graph-node-hitbox:active {
+      cursor: grabbing;
+    }
+
+    /* Impact Rates List */
+    .impact-subtext {
+      font-size: 13px;
+      color: #737373;
+      margin-bottom: 16px;
+      margin-top: -10px;
+    }
+    .impact-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+    }
+    .impact-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .impact-icon-bg {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #f1f3f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .impact-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: #000;
+    }
+    .impact-right {
+      text-align: right;
+    }
+    .impact-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #000;
+    }
+    .impact-status {
+      font-size: 12px;
+      color: #737373;
+    }
+    .impact-status.higher {
+      color: #128854;
+    }
+
+    /* Audience Section Elements */
+    .data-row {
+      margin-bottom: 18px;
+    }
+    .label-line {
+      font-size: 14px;
+      color: #262626;
+      margin-bottom: 6px;
+      font-weight: 400;
+    }
+    .bar-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .bar-bg {
+      flex: 1;
+      height: 8px;
+      background-color: #f1f1f4;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .bg-gradient-purple {
+      background: linear-gradient(90deg, #6200ee, #7f00ff);
+    }
+    .bg-gradient-pink {
+      background: linear-gradient(90deg, #d800a6, #e6007e);
+    }
+    .percent-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #000;
+      min-width: 48px;
+      text-align: right;
+    }
+
+    /* Audience Pills */
+    .pill-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .pill-btn {
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid #dbdbdb;
+      background-color: #fff;
+      color: #000;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .pill-btn.active {
+      background-color: #f1f3f7;
+      border-color: transparent;
+    }
+
+    /* Engagement List Rows */
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      font-size: 15px;
+      color: #000;
+    }
+    .metric-label {
+      font-weight: 400;
+    }
+    .metric-value {
+      font-weight: 500;
+    }
+    .unavailable-container {
+      margin-top: 50px;
+      text-align: center;
+      color: #737373;
+      font-size: 14px;
+    }
+
+    /* Mini Player in Retention */
+    .mini-player-container {
+      display: flex;
+      justify-content: center;
+      margin: 16px 0 24px 0;
+    }
+    .mini-player-wrapper {
+      position: relative;
+      width: 100px;
+      height: 177px;
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .play-icon-overlay {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    #thumb-upload {
+      display: none;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Security Passcode Access Screen -->
+  <div id="security-overlay">
+    <div class="security-card">
+      <h2>Enter Security Code</h2>
+      <p>Please enter your access code to view insights.</p>
+      <input type="password" id="passcode-input" placeholder="•••••••" maxlength="10">
+      <button onclick="verifyCode()">Access Insights</button>
+      <div id="error-msg" class="error-msg">Incorrect security code.</div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span data-editable="true" id="status-time">7:25 PM</span>
+      <div class="status-icons">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"/></svg>
+        <span data-editable="true" id="status-battery">42</span>
+      </div>
+    </div>
+
+    <!-- Navigation Header -->
+    <div class="nav-bar">
+      <div class="nav-left">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        <span class="nav-title" data-editable="true">Reel insights</span>
+      </div>
+      <div class="nav-right">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+      </div>
+    </div>
+
+    <!-- Media Thumbnail Section -->
+    <div class="media-section">
+      <input type="file" id="thumb-upload" accept="image/*" onchange="loadThumbnail(event)">
+      <div class="thumbnail-wrapper" onclick="document.getElementById('thumb-upload').click()" title="Click to upload/change thumbnail">
+        <img id="thumbnail-img" class="thumbnail-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='195' viewBox='0 0 110 195'><rect width='100%' height='100%' fill='%23222222'/><text x='50%' y='50%' fill='%23888888' font-size='11' text-anchor='middle'>Click to upload</text></svg>" alt="Reel Thumbnail">
+      </div>
+    </div>
+
+    <!-- Top Reaction Bar -->
+    <div class="engagement-bar">
+      <div class="engagement-item">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.72-8.72 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        <span class="engagement-count" id="top-likes" data-editable="true">55</span>
+      </div>
+      <div class="engagement-item">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+        <span class="engagement-count" id="top-comments" data-editable="true">0</span>
+      </div>
+      <div class="engagement-item">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+        <span class="engagement-count" id="top-reposts" data-editable="true">0</span>
+      </div>
+      <div class="engagement-item">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        <span class="engagement-count" id="top-shares" data-editable="true">0</span>
+      </div>
+      <div class="engagement-item">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+        <span class="engagement-count" id="top-saves" data-editable="true">0</span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-bar">
+      <div class="tab-item active" id="tab-overview" onclick="switchMainTab('overview')">Overview</div>
+      <div class="tab-item" id="tab-engagement" onclick="switchMainTab('engagement')">Engagement</div>
+      <div class="tab-item" id="tab-audience" onclick="switchMainTab('audience')">Audience</div>
+    </div>
+
+    <div class="content-area">
+      <!-- OVERVIEW TAB CONTENT -->
+      <div id="view-overview" class="tab-content active">
+        <!-- Summary Cards Section -->
+        <div class="section-header">
+          <span data-editable="true">Summary</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span class="summary-title" data-editable="true">Views</span>
+            <span class="summary-value" id="card-views" data-editable="true">3,321</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-title" data-editable="true">Viewers</span>
+            <span class="summary-value" id="card-viewers" data-editable="true">2,561</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-title" data-editable="true">Average watch time</span>
+            <span class="summary-value" data-editable="true">21s</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-title" data-editable="true">Follows</span>
+            <span class="summary-value" data-editable="true">0</span>
+          </div>
+        </div>
+
+        <!-- Touch Interactive Views Over Time Chart -->
+        <div class="section-header">
+          <span data-editable="true">Views over time</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <div class="pill-group" style="margin-bottom: 16px;">
+          <button class="pill-btn active">All</button>
+          <button class="pill-btn">Followers</button>
+          <button class="pill-btn">Non-followers</button>
+        </div>
+        <div class="graph-container" id="views-graph-container">
+          <div class="graph-y-axis">
+            <span data-editable="true" id="y-max-views">4K</span>
+            <span data-editable="true" id="y-mid-views">2K</span>
+            <span data-editable="true">0</span>
+          </div>
+          <div style="padding-left: 28px; height: 100%;">
+            <svg class="graph-svg" id="views-svg" viewBox="0 0 320 140" preserveAspectRatio="none">
+              <line x1="0" y1="10" x2="320" y2="10" stroke="#f1f1f4" stroke-width="1"/>
+              <line x1="0" y1="70" x2="320" y2="70" stroke="#f1f1f4" stroke-width="1"/>
+              <line x1="0" y1="130" x2="320" y2="130" stroke="#f1f1f4" stroke-width="1"/>
+              <path id="views-path" d="" fill="none" stroke="#d800a6" stroke-width="3" stroke-linecap="round"/>
+              <!-- Hitboxes created via JS -->
+            </svg>
+            <div class="graph-x-axis">
+              <span data-editable="true">0</span>
+              <span data-editable="true" id="x-mid-views">8h</span>
+              <span data-editable="true" id="x-max-views">17h</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- What Impacts Your Views -->
+        <div class="section-header" style="margin-top: 24px;">
+          <span data-editable="true">What impacts your views</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <p class="impact-subtext" data-editable="true">Rates are listed in order of importance to reach.</p>
+        
+        <div class="impact-row">
+          <div class="impact-left">
+            <div class="impact-icon-bg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <span class="impact-label" data-editable="true">Skip rate</span>
+          </div>
+          <div class="impact-right">
+            <div class="impact-value" data-editable="true">5.0%</div>
+            <div class="impact-status" data-editable="true">Typical</div>
+          </div>
+        </div>
+        <div class="impact-row">
+          <div class="impact-left">
+            <div class="impact-icon-bg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </div>
+            <span class="impact-label" data-editable="true">Share rate</span>
+          </div>
+          <div class="impact-right">
+            <div class="impact-value" data-editable="true">0.0%</div>
+            <div class="impact-status" data-editable="true">Typical</div>
+          </div>
+        </div>
+        <div class="impact-row">
+          <div class="impact-left">
+            <div class="impact-icon-bg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.72-8.72 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            </div>
+            <span class="impact-label" data-editable="true">Like rate</span>
+          </div>
+          <div class="impact-right">
+            <div class="impact-value" data-editable="true">6.9%</div>
+            <div class="impact-status higher" data-editable="true">Higher</div>
+          </div>
+        </div>
+        <div class="impact-row">
+          <div class="impact-left">
+            <div class="impact-icon-bg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <span class="impact-label" data-editable="true">Save rate</span>
+          </div>
+          <div class="impact-right">
+            <div class="impact-value" data-editable="true">0.0%</div>
+            <div class="impact-status" data-editable="true">Typical</div>
+          </div>
+        </div>
+        <div class="impact-row">
+          <div class="impact-left">
+            <div class="impact-icon-bg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+            </div>
+            <span class="impact-label" data-editable="true">Repost rate</span>
+          </div>
+          <div class="impact-right">
+            <div class="impact-value" data-editable="true">0.0%</div>
+            <div class="impact-status" data-editable="true">Typical</div>
+          </div>
+        </div>
+        <div class="impact-row" style="margin-bottom: 24px;">
+          <div class="impact-left">
+            <div class="impact-icon-bg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            </div>
+            <span class="impact-label" data-editable="true">Comment rate</span>
+          </div>
+          <div class="impact-right">
+            <div class="impact-value" data-editable="true">0.0%</div>
+            <div class="impact-status" data-editable="true">Typical</div>
+          </div>
+        </div>
+
+        <!-- How Long People Watched -->
+        <div class="section-header">
+          <span data-editable="true">How long people watched your reel</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <div class="mini-player-container">
+          <div class="mini-player-wrapper">
+            <img class="thumbnail-img second-thumb" id="mini-thumb-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='177' viewBox='0 0 100 177'><rect width='100%' height='100%' fill='%23222222'/></svg>" alt="Mini player">
+            <div class="play-icon-overlay">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Touch Interactive Retention Line Graph -->
+        <div class="graph-container" id="retention-graph-container">
+          <div class="graph-y-axis">
+            <span data-editable="true">100%</span>
+            <span data-editable="true">50%</span>
+            <span data-editable="true">0%</span>
+          </div>
+          <div style="padding-left: 36px; height: 100%;">
+            <svg class="graph-svg" id="retention-svg" viewBox="0 0 300 120" preserveAspectRatio="none">
+              <path id="retention-path" d="" fill="none" stroke="#d800a6" stroke-width="3" stroke-linecap="round"/>
+              <!-- Hitboxes created via JS -->
+            </svg>
+            <div class="graph-x-axis" style="padding-left: 0;">
+              <span data-editable="true">0:00</span>
+              <span data-editable="true" id="retention-end-time">0:27</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Sources of Views -->
+        <div class="section-header" style="margin-top: 24px;">
+          <span data-editable="true">Top sources of views</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <div class="data-row">
+          <div class="label-line" data-editable="true">Reels tab</div>
+          <div class="bar-line">
+            <div class="bar-bg">
+              <div class="bar-fill bg-gradient-pink" id="bar-reels" style="width: 87.2%;"></div>
+            </div>
+            <span class="percent-value" data-editable="true" data-bar="bar-reels">87.2%</span>
+          </div>
+        </div>
+        <div class="data-row">
+          <div class="label-line" data-editable="true">Explore</div>
+          <div class="bar-line">
+            <div class="bar-bg">
+              <div class="bar-fill bg-gradient-pink" id="bar-explore" style="width: 11.6%;"></div>
+            </div>
+            <span class="percent-value" data-editable="true" data-bar="bar-explore">11.6%</span>
+          </div>
+        </div>
+        <div class="data-row" style="margin-bottom: 24px;">
+          <div class="label-line" data-editable="true">Feed</div>
+          <div class="bar-line">
+            <div class="bar-bg">
+              <div class="bar-fill bg-gradient-pink" id="bar-feed" style="width: 1.2%;"></div>
+            </div>
+            <span class="percent-value" data-editable="true" data-bar="bar-feed">1.2%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENGAGEMENT TAB CONTENT -->
+      <div id="view-engagement" class="tab-content">
+        <div class="section-header">
+          <span data-editable="true">Actions after viewing</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <div class="metric-row" style="margin-bottom: 24px;">
+          <span class="metric-label" data-editable="true">Follows</span>
+          <span class="metric-value" data-editable="true">0</span>
+        </div>
+
+        <div class="section-header">
+          <span data-editable="true">Interactions</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label" data-editable="true">Likes</span>
+          <span class="metric-value" id="list-likes" data-editable="true">55</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label" data-editable="true">Comments</span>
+          <span class="metric-value" id="list-comments" data-editable="true">0</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label" data-editable="true">Reposts</span>
+          <span class="metric-value" id="list-reposts" data-editable="true">0</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label" data-editable="true">Shares</span>
+          <span class="metric-value" id="list-shares" data-editable="true">0</span>
+        </div>
+        <div class="metric-row" style="margin-bottom: 24px;">
+          <span class="metric-label" data-editable="true">Saves</span>
+          <span class="metric-value" id="list-saves" data-editable="true">0</span>
+        </div>
+
+        <div class="section-header">
+          <span data-editable="true">When people liked your reel</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <div class="unavailable-container" data-editable="true">
+          Data is currently unavailable.
+        </div>
+      </div>
+
+      <!-- AUDIENCE TAB CONTENT -->
+      <div id="view-audience" class="tab-content">
+        <div class="section-header">
+          <span data-editable="true">Who viewed your reel</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <div class="data-row">
+          <div class="label-line" data-editable="true">Followers</div>
+          <div class="bar-line">
+            <div class="bar-bg">
+              <div class="bar-fill bg-gradient-pink" id="bar-followers" style="width: 1.8%;"></div>
+            </div>
+            <span class="percent-value" data-editable="true" data-bar="bar-followers">1.8%</span>
+          </div>
+        </div>
+        <div class="data-row" style="margin-bottom: 32px;">
+          <div class="label-line" data-editable="true">Non-followers</div>
+          <div class="bar-line">
+            <div class="bar-bg">
+              <div class="bar-fill bg-gradient-purple" id="bar-nonfollowers" style="width: 98.2%;"></div>
+            </div>
+            <span class="percent-value" data-editable="true" data-bar="bar-nonfollowers">98.2%</span>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <span data-editable="true">Audience details</span>
+          <span class="info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#737373" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </span>
+        </div>
+        <div class="pill-group">
+          <button class="pill-btn" id="pill-age" onclick="switchAudienceCategory('age')">Age</button>
+          <button class="pill-btn active" id="pill-country" onclick="switchAudienceCategory('country')">Country</button>
+          <button class="pill-btn" id="pill-gender" onclick="switchAudienceCategory('gender')">Gender</button>
+        </div>
+
+        <div id="dynamic-audience-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Audience Category Dynamic Data
+    let audienceData = {
+      gender: [
+        { label: "Men", value: "70.4%", barWidth: "70.4%", colorClass: "bg-gradient-pink" },
+        { label: "Women", value: "29.6%", barWidth: "29.6%", colorClass: "bg-gradient-purple" }
+      ],
+      country: [
+        { label: "United States", value: "60.1%", barWidth: "60.1%", colorClass: "bg-gradient-pink" },
+        { label: "United Kingdom", value: "8.4%", barWidth: "14%", colorClass: "bg-gradient-pink" },
+        { label: "Canada", value: "7.1%", barWidth: "11%", colorClass: "bg-gradient-pink" },
+        { label: "Australia", value: "5.5%", barWidth: "8.5%", colorClass: "bg-gradient-pink" },
+        { label: "Germany", value: "3.8%", barWidth: "6%", colorClass: "bg-gradient-pink" }
+      ],
+      age: [
+        { label: "13-17", value: "0.2%", barWidth: "1%", colorClass: "bg-gradient-pink" },
+        { label: "18-24", value: "15.4%", barWidth: "20%", colorClass: "bg-gradient-pink" },
+        { label: "25-34", value: "41.2%", barWidth: "52%", colorClass: "bg-gradient-pink" },
+        { label: "35-44", value: "25.1%", barWidth: "32%", colorClass: "bg-gradient-pink" },
+        { label: "45-54", value: "12.8%", barWidth: "16%", colorClass: "bg-gradient-pink" },
+        { label: "55-64", value: "3.5%", barWidth: "5%", colorClass: "bg-gradient-pink" },
+        { label: "65+", value: "1.8%", barWidth: "2.5%", colorClass: "bg-gradient-pink" }
+      ]
+    };
+
+    let currentAudienceCategory = 'country';
+
+    // Verify Passcode
+    function verifyCode() {
+      const inputVal = document.getElementById('passcode-input').value.trim();
+      const errorMsg = document.getElementById('error-msg');
+      if (inputVal === '4610495') {
+        document.getElementById('security-overlay').style.display = 'none';
+        promptMetricsConfiguration();
+      } else {
+        errorMsg.style.display = 'block';
+      }
+    }
+
+    // Initial Setup Prompt Configuration
+    function promptMetricsConfiguration() {
+      setTimeout(() => {
+        const views = prompt("Enter total Views count:", "3,321");
+        const viewers = prompt("Enter Viewers count:", "2,561");
+        const likes = prompt("Enter Likes count:", "55");
+        const comments = prompt("Enter Comments count:", "0");
+        const shares = prompt("Enter Shares count:", "0");
+        const saves = prompt("Enter Saves count:", "0");
+
+        if (views !== null) document.getElementById('card-views').innerText = views;
+        if (viewers !== null) document.getElementById('card-viewers').innerText = viewers;
+
+        if (likes !== null) {
+          document.getElementById('top-likes').innerText = likes;
+          document.getElementById('list-likes').innerText = likes;
+        }
+        if (comments !== null) {
+          document.getElementById('top-comments').innerText = comments;
+          document.getElementById('list-comments').innerText = comments;
+        }
+        if (shares !== null) {
+          document.getElementById('top-shares').innerText = shares;
+          document.getElementById('list-shares').innerText = shares;
+        }
+        if (saves !== null) {
+          document.getElementById('top-saves').innerText = saves;
+          document.getElementById('list-saves').innerText = saves;
+        }
+
+        renderAudienceCategory();
+      }, 100);
+    }
+
+    // Tab Switching
+    function switchMainTab(tabKey) {
+      document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(`tab-${tabKey}`).classList.add('active');
+      document.getElementById(`view-${tabKey}`).classList.add('active');
+
+      if (tabKey === 'audience') {
+        renderAudienceCategory();
+      }
+    }
+
+    // Audience Category Switching
+    function switchAudienceCategory(catKey) {
+      currentAudienceCategory = catKey;
+      document.querySelectorAll('.pill-group .pill-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`pill-${catKey}`).classList.add('active');
+      renderAudienceCategory();
+    }
+
+    function renderAudienceCategory() {
+      const container = document.getElementById('dynamic-audience-list');
+      container.innerHTML = '';
+
+      const items = audienceData[currentAudienceCategory] || [];
+      items.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'data-row';
+        row.innerHTML = `
+          <div class="label-line" data-editable="true" data-cat="${currentAudienceCategory}" data-idx="${index}" data-type="label">${item.label}</div>
+          <div class="bar-line">
+            <div class="bar-bg">
+              <div class="bar-fill ${item.colorClass}" style="width: ${item.barWidth};"></div>
+            </div>
+            <span class="percent-value" data-editable="true" data-cat="${currentAudienceCategory}" data-idx="${index}" data-type="value">${item.value}</span>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+      attachLongHoldHandlers();
+    }
+
+    // Thumbnail File Loader
+    function loadThumbnail(event) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        document.getElementById('thumbnail-img').src = reader.result;
+        document.getElementById('mini-thumb-img').src = reader.result;
+      };
+      if(event.target.files[0]) {
+        reader.readAsDataURL(event.target.files[0]);
+      }
+    }
+
+    // ==========================================
+    // LONG-HOLD EDITABLE SYSTEM (Universal)
+    // ==========================================
+    let holdTimer = null;
+
+    function attachLongHoldHandlers() {
+      document.querySelectorAll('[data-editable="true"]').forEach(elem => {
+        elem.removeEventListener('touchstart', handleTouchStart);
+        elem.removeEventListener('touchend', handleTouchEnd);
+        elem.removeEventListener('mousedown', handleMouseDown);
+        elem.removeEventListener('mouseup', handleMouseUp);
+
+        elem.addEventListener('touchstart', handleTouchStart);
+        elem.addEventListener('touchend', handleTouchEnd);
+        elem.addEventListener('mousedown', handleMouseDown);
+        elem.addEventListener('mouseup', handleMouseUp);
+      });
+    }
+
+    function startHold(elem) {
+      holdTimer = setTimeout(() => {
+        triggerEditPrompt(elem);
+      }, 500);
+    }
+
+    function clearHold() {
+      if (holdTimer) clearTimeout(holdTimer);
+    }
+
+    function handleTouchStart(e) { startHold(e.currentTarget); }
+    function handleTouchEnd() { clearHold(); }
+    function handleMouseDown(e) { startHold(e.currentTarget); }
+    function handleMouseUp() { clearHold(); }
+
+    function triggerEditPrompt(elem) {
+      const currentText = elem.innerText.trim();
+      const newText = prompt("Edit text/value:", currentText);
+      if (newText !== null && newText !== "") {
+        elem.innerText = newText;
+
+        // Auto-update linked dynamic progress bar if present
+        const linkedBarId = elem.getAttribute('data-bar');
+        if (linkedBarId) {
+          const numericVal = parseFloat(newText.replace('%', ''));
+          if (!isNaN(numericVal)) {
+            document.getElementById(linkedBarId).style.width = `${Math.min(100, Math.max(0, numericVal))}%`;
+          }
+        }
+
+        // Auto-update underlying Audience array if dynamic element
+        const cat = elem.getAttribute('data-cat');
+        const idx = elem.getAttribute('data-idx');
+        const type = elem.getAttribute('data-type');
+        if (cat && idx !== null && type) {
+          audienceData[cat][idx][type] = newText;
+          if (type === 'value') {
+            const numericVal = parseFloat(newText.replace('%', ''));
+            if (!isNaN(numericVal)) {
+              audienceData[cat][idx].barWidth = `${Math.min(100, Math.max(0, numericVal))}%`;
+            }
+            renderAudienceCategory();
+          }
+        }
+      }
+    }
+
+    // ==========================================
+    // TOUCH EDITABLE GRAPH CANVAS ENGINE (NO VISIBLE CIRCLES)
+    // ==========================================
+    class TouchGraphEngine {
+      constructor(containerId, svgId, pathId, initialPoints, viewBoxWidth = 320, viewBoxHeight = 140) {
+        this.container = document.getElementById(containerId);
+        this.svg = document.getElementById(svgId);
+        this.path = document.getElementById(pathId);
+        this.points = initialPoints;
+        this.vWidth = viewBoxWidth;
+        this.vHeight = viewBoxHeight;
+        this.dragNodeIndex = null;
+
+        this.init();
+      }
+
+      init() {
+        this.render();
+        this.bindEvents();
+      }
+
+      bindEvents() {
+        const handleStart = (e) => {
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          const target = e.target;
+
+          if (target.classList.contains('graph-node-hitbox')) {
+            this.dragNodeIndex = parseInt(target.getAttribute('data-index'));
+            e.preventDefault();
+          } else {
+            // Check proximity click to nearest point
+            const rect = this.svg.getBoundingClientRect();
+            const mouseX = ((clientX - rect.left) / rect.width) * this.vWidth;
+            let closestIdx = -1;
+            let minDist = Infinity;
+
+            this.points.forEach((pt, idx) => {
+              const dist = Math.abs(pt.x - mouseX);
+              if (dist < minDist) {
+                minDist = dist;
+                closestIdx = idx;
+              }
+            });
+
+            if (closestIdx !== -1 && minDist < 45) {
+              this.dragNodeIndex = closestIdx;
+              e.preventDefault();
+            }
+          }
+        };
+
+        const handleMove = (e) => {
+          if (this.dragNodeIndex === null) return;
+
+          const rect = this.svg.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+          let x = ((clientX - rect.left) / rect.width) * this.vWidth;
+          let y = ((clientY - rect.top) / rect.height) * this.vHeight;
+
+          // Vertical Constraints
+          y = Math.max(10, Math.min(this.vHeight - 10, y));
+
+          // Clamp Horizontal X between neighboring points
+          const minX = this.dragNodeIndex > 0 ? this.points[this.dragNodeIndex - 1].x + 10 : 0;
+          const maxX = this.dragNodeIndex < this.points.length - 1 ? this.points[this.dragNodeIndex + 1].x - 10 : this.vWidth;
+          x = Math.max(minX, Math.min(maxX, x));
+
+          this.points[this.dragNodeIndex].x = x;
+          this.points[this.dragNodeIndex].y = y;
+
+          this.render();
+          e.preventDefault();
+        };
+
+        const handleEnd = () => {
+          this.dragNodeIndex = null;
+        };
+
+        this.svg.addEventListener('touchstart', handleStart, { passive: false });
+        this.svg.addEventListener('touchmove', handleMove, { passive: false });
+        this.svg.addEventListener('touchend', handleEnd);
+
+        this.svg.addEventListener('mousedown', handleStart);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+      }
+
+      // Smooth Curve Generation via Cubic Spline / Bezier
+      getSmoothPath() {
+        if (this.points.length < 2) return '';
+        let d = `M ${this.points[0].x} ${this.points[0].y}`;
+
+        for (let i = 0; i < this.points.length - 1; i++) {
+          const p0 = this.points[i];
+          const p1 = this.points[i + 1];
+          const cpX1 = p0.x + (p1.x - p0.x) / 2;
+          const cpY1 = p0.y;
+          const cpX2 = p0.x + (p1.x - p0.x) / 2;
+          const cpY2 = p1.y;
+
+          d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
+        }
+        return d;
+      }
+
+      render() {
+        this.path.setAttribute('d', this.getSmoothPath());
+
+        // Remove old hitboxes
+        this.svg.querySelectorAll('.graph-node-hitbox').forEach(node => node.remove());
+
+        // Create invisible hitboxes for seamless dragging without visible circles
+        this.points.forEach((pt, idx) => {
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', pt.x);
+          circle.setAttribute('cy', pt.y);
+          circle.setAttribute('r', 25); // Large touch area for smooth drag
+          circle.setAttribute('class', 'graph-node-hitbox');
+          circle.setAttribute('data-index', idx);
+          this.svg.appendChild(circle);
+        });
+      }
+    }
+
+    // Initialize Interactive Graph Components
+    document.addEventListener('DOMContentLoaded', () => {
+      // Views Over Time Graph Engine
+      new TouchGraphEngine('views-graph-container', 'views-svg', 'views-path', [
+        { x: 0, y: 130 },
+        { x: 80, y: 100 },
+        { x: 160, y: 85 },
+        { x: 260, y: 45 },
+        { x: 320, y: 20 }
+      ], 320, 140);
+
+      // Audience Retention Graph Engine
+      new TouchGraphEngine('retention-graph-container', 'retention-svg', 'retention-path', [
+        { x: 0, y: 10 },
+        { x: 50, y: 60 },
+        { x: 150, y: 75 },
+        { x: 220, y: 85 },
+        { x: 300, y: 90 }
+      ], 300, 120);
+
+      attachLongHoldHandlers();
+    });
+  </script>
+</body>
+</html>
